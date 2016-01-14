@@ -1,0 +1,74 @@
+#!/usr/bin/python
+
+#   Obtains bib files from DBLP when given research paper title or even parts of
+#   title
+# 
+#   (c) 2015 Krishnamoorthy Dinesh <kdinesh@cse.iitm.ac.in>
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 3 of the License, or
+#   (at your option) any later version.
+#   
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+
+import sys, os, re
+import requests
+import signal
+try:
+    import BeautifulSoup
+except ImportError:
+    print "BeautifulSoup parser missing : do apt-get install python-beautifulsoup"
+    sys.exit(0)
+else:
+    DBLP_BASE_URL = 'http://dblp.uni-trier.de/'
+    DBLP_AUTHOR_SEARCH_URL = DBLP_BASE_URL + 'search/author'
+    DBLP_TITLE_SEARCH_URL = DBLP_BASE_URL + 'search/q'
+    DBLP_BIBTEX_URL= DBLP_BASE_URL + "rec/bib2/"
+
+    def sig_handle(sig, fr):
+        print "Exit"
+        sys.exit(0)
+
+    def getbib(title_str):
+        resp = requests.get(DBLP_TITLE_SEARCH_URL, params={'q':title_str})
+        soup= BeautifulSoup.BeautifulSoup(resp.content)
+        l = []
+        for classtag in soup.findAll('li', {'class':"select-on-click"}):
+            for smalltag in classtag.findAll('small'):
+                if not re.search("dblp.org",str(smalltag.text)):
+                     l.append(str(smalltag.text))
+        rlen = len(l)
+        if rlen == 0:
+            print "No entries found"
+        elif rlen == 1:
+            url = DBLP_BIBTEX_URL + l[0] + ".bib"
+            print requests.get(url).content
+        else:
+            print "Multiple entries detected"
+            for i in range(rlen):
+                print (i+1), ")",  l[i]
+            ch = raw_input("Enter choice (default 1) ")
+            if len(ch) == 0 or not ch.isdigit():
+                v = 0
+            else:
+                v = int(ch)-1
+            if  v > rlen - 1:
+                v = 0
+            url = DBLP_BIBTEX_URL + l[v] + ".bib"
+            print requests.get(url).content
+
+    def main():
+        count = len(sys.argv)
+        if count == 1:
+            print "Usage :", os.path.basename(__file__), "\"Title of the paper in quotes\""
+            sys.exit(-1)
+
+        getbib(sys.argv[1])
+
+    if __name__ == "__main__":
+        signal.signal(signal.SIGINT, sig_handle)
+        main()
