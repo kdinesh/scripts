@@ -1,19 +1,7 @@
 #!/usr/bin/python
 
-#   Obtains bib files from DBLP when given research paper title or even parts of
-#   title
-# 
-#   (c) 2015 Krishnamoorthy Dinesh <kdinesh@cse.iitm.ac.in>
-#
-#   This program is free software; you can redistribute it and/or modify
-#   it under the terms of the GNU General Public License as published by
-#   the Free Software Foundation; either version 3 of the License, or
-#   (at your option) any later version.
-#   
-#   This program is distributed in the hope that it will be useful,
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
+# (c) Dec 2015, Krishnamoorthy Dinesh
+# License : GPLv3
 
 import sys, os, re
 import requests
@@ -25,6 +13,7 @@ except ImportError:
     sys.exit(0)
 else:
     DBLP_BASE_URL = 'http://dblp.uni-trier.de/'
+    DBLP_AUTHOR_SEARCH_URL = DBLP_BASE_URL + 'search/author'
     DBLP_TITLE_SEARCH_URL = DBLP_BASE_URL + 'search/q'
     DBLP_BIBTEX_URL= DBLP_BASE_URL + "rec/bib2/"
 
@@ -55,19 +44,36 @@ else:
                 v = 0
             else:
                 v = int(ch)-1
-            if  v > rlen - 1:
+            if v > rlen-1:
                 v = 0
             url = DBLP_BIBTEX_URL + l[v] + ".bib"
-            print requests.get(url).content
+            resp = requests.get(url).content
 
-    def main():
-        count = len(sys.argv)
-        if count == 1:
-            print "Usage :", os.path.basename(__file__), "\"Title of the paper in quotes\""
-            sys.exit(-1)
+            # split response into lines 
+            lines = resp.splitlines()
 
-        getbib(sys.argv[1])
+            # Do processing of first line to get desired bibkey 
+            header = re.search('\@(.*){', lines[0]).group(0)
+            bibkey = re.sub('[a-z]', "", re.search('.*\/(.*)$', lines[0]).group(1))
+            print header, bibkey
+            
+            # process rest of the lines
+            lines = lines[1:]
+            for line in lines:
+                if not re.search('crossref', line):    # ignore crossref
+                    print line
+                if line == '}':    # end of bib. Do not print crossref.
+                    break               
 
-    if __name__ == "__main__":
-        signal.signal(signal.SIGINT, sig_handle)
-        main()
+def main():
+    count = len(sys.argv)
+    if count == 1:
+        print "Usage :", os.path.basename(__file__), "\"Title of the paper in quotes\""
+        sys.exit(-1)
+
+    getbib(sys.argv[1])
+
+# for graceful exit on Ctrl+C
+if __name__ == "__main__":
+    signal.signal(signal.SIGINT, sig_handle)
+    main()
