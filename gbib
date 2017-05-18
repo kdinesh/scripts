@@ -4,37 +4,43 @@
 # License : GPLv3
 
 import sys, os, re
-import requests
 import signal
 try:
     import BeautifulSoup
 except ImportError:
-    print "BeautifulSoup parser missing : do apt-get install python-beautifulsoup"
+    print "Python BeautifulSoup parser package missing : do apt-get install python-beautifulsoup"
     sys.exit(0)
 else:
-    DBLP_BASE_URL = 'http://dblp.uni-trier.de/'
-    DBLP_AUTHOR_SEARCH_URL = DBLP_BASE_URL + 'search/author'
-    DBLP_TITLE_SEARCH_URL = DBLP_BASE_URL + 'search/q'
-    DBLP_BIBTEX_URL= DBLP_BASE_URL + "rec/bib2/"
-
-    def sig_handle(sig, fr):
-        print "Exit"
+    try:
+        import requests
+    except ImportError:
+        print "Python requests package missing : do apt-get install python-requests"
         sys.exit(0)
+    else:
+        DBLP_BASE_URL = 'http://dblp.uni-trier.de/'
+        DBLP_AUTHOR_SEARCH_URL = DBLP_BASE_URL + 'search/author'
+        DBLP_TITLE_SEARCH_URL = DBLP_BASE_URL + 'search/q'
+        DBLP_BIBTEX_URL= DBLP_BASE_URL + "rec/bib2/"
 
-    def getbib(title_str):
-        resp = requests.get(DBLP_TITLE_SEARCH_URL, params={'q':title_str})
-        soup= BeautifulSoup.BeautifulSoup(resp.content)
-        l = []
-        for classtag in soup.findAll('li', {'class':"select-on-click"}):
-            for smalltag in classtag.findAll('small'):
-                if not re.search("dblp.org",str(smalltag.text)):
-                     l.append(str(smalltag.text))
-        rlen = len(l)
-        if rlen == 0:
-            print "No entries found"
-        else:
-            if rlen == 1:
-                v = 0
+        def sig_handle(sig, fr):
+            print "Exit"
+            sys.exit(0)
+
+        def getbib(title_str):
+            resp = requests.get(DBLP_TITLE_SEARCH_URL, params={'q':title_str})
+            soup= BeautifulSoup.BeautifulSoup(resp.content)
+            l = []
+            for classtag in soup.findAll('li', {'class':"select-on-click"}):
+                for smalltag in classtag.findAll('small'):
+                    if not re.search("dblp.org",str(smalltag.text)):
+                         l.append(str(smalltag.text))
+            rlen = len(l)
+            if rlen == 0:
+                print "No entries found"
+                return
+            elif rlen == 1:
+                url = DBLP_BIBTEX_URL + l[0] + ".bib"
+                data = requests.get(url).content
             else:
                 print "Multiple entries detected"
                 for i in range(rlen):
@@ -44,13 +50,13 @@ else:
                     v = 0
                 else:
                     v = int(ch)-1
-                if v > rlen-1:      # wrong entry number ? give first bib entry
+                if v > rlen-1:
                     v = 0
-            url = DBLP_BIBTEX_URL + l[v] + ".bib"
-            resp = requests.get(url).content
+                url = DBLP_BIBTEX_URL + l[v] + ".bib"
+                data = requests.get(url).content
 
             # split response into lines 
-            lines = resp.splitlines()
+            lines = data.splitlines()
 
             # Do processing of first line to get desired bibkey 
             header = re.search('\@(.*){', lines[0]).group(0)
@@ -59,11 +65,12 @@ else:
             
             # process rest of the lines
             lines = lines[1:]
+
             for line in lines:
                 if not re.search('crossref', line):    # ignore crossref
                     print line
                 if line == '}':    # end of bib. Do not print crossref.
-                    break               
+                    break
 
 def main():
     count = len(sys.argv)
