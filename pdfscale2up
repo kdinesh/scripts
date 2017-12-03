@@ -1,0 +1,21 @@
+#!/bin/bash
+
+SCALE=1.2
+
+if [ $# -ne 1 ]
+then
+	echo -e "Usage : `basename $0` \"file name\""
+	echo "Default scaling is 1.2"
+	exit 0
+
+fi
+
+if [ -f $1 ]
+then
+	pdfjam --scale $SCALE "$1" -o mytmpout.pdf
+	pdfjam --landscape --nup 2x1 mytmpout.pdf -o "$1-2up.pdf"
+	rm -f mytmpout.pdf
+else
+	echo "File not found"
+	exit 0
+fi
