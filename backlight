@@ -1,0 +1,20 @@
+#!/bin/sh
+
+ON_AC=27
+ON_BATT=27
+
+if ["$1" = "true"]; then
+
+    echo $ON_BATT > /sys/class/backlight/radeon_bl0/brightness
+
+fi
+
+if ["$1" = "false"]; then
+
+    echo $ON_AC > /sys/class/backlight/radeon_bl0/brightness
+
+fi
+
+exit 0
+
+
