@@ -1,13 +1,18 @@
 #!/bin/bash
 
-SCALE=1.2
-
-if [ $# -ne 1 ]
+if [ $# -gt 2 ]
 then
 	echo -e "Usage : `basename $0` \"file name\""
 	echo "Default scaling is 1.2"
 	exit 0
 
+fi
+
+if [ $# -eq 2 ]
+then
+	SCALE=$2
+else
+	SCALE=1.2
 fi
 
 if [ -f $1 ]
