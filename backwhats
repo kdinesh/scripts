@@ -1,0 +1,37 @@
+#!/bin/bash
+set -e
+
+WPROOT="$HOME/Downloads/whatsapp"
+WPPATH="/sdcard/WhatsApp/Media/WhatsApp"
+
+# Check if device is online and fail otherwise
+adb devices
+
+# Download all that are new
+for tp in "Audio" "Video" "Images"
+do
+	if [ ! -d "$WPROOT/$tp" ]
+	then
+		mkdir -p $WPROOT/$tp
+	fi
+	
+	out=`adb shell "ls $WPPATH\ $tp"`
+	flg=1
+	echo "Checking for new files in $tp ..."
+	for i in $out
+	do
+		if [ ! -e "$WPROOT/$tp/$i" ]
+		then
+			echo "New file named $i"
+			adb pull "$WPPATH $tp/$i" "$WPROOT/$tp/"
+		fi
+		flg=0
+	done
+	if [ $flg ]
+	then
+		echo "No new files in $tp"
+	fi
+
+	echo
+done
+
