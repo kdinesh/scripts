@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ $# -gt 2 ]
+if [ $# -gt 2 ] || [ $# -eq 0 ]
 then
 	echo -e "Usage : `basename $0` \"file name\""
 	echo "Default scaling is 1.2"
