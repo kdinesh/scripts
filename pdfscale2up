@@ -15,7 +15,7 @@ else
 	SCALE=1.2
 fi
 
-if [ -f $1 ]
+if [ -f "$1" ]
 then
 	pdfjam --scale $SCALE "$1" -o mytmpout.pdf
 	pdfjam --landscape --nup 2x1 mytmpout.pdf -o "$1-2up.pdf"
