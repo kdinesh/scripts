@@ -8,7 +8,7 @@ UPREFIX=""
 
 # Add all the shared file names *as they appear in your filesystem*. If there is space or "/" add "\" before it.
 # Issue of one dir being prefix of other dir is fixed (in line commented ####)
-declare -a d_shared_dirs=('Dinesh-Sajin-Jayalal' 'Dinesh-Jayalal' 'Samir-Dinesh-Jayalal' 'TA\ files\/Pseudorandomness\ Problem\ Sets\ 2018') 
+declare -a d_shared_dirs=('Dinesh-Sajin-Jayalal' 'Dinesh-Jayalal' 'Samir-Dinesh-Jayalal' 'TA\ files\/Pseudorandomness\ Problem\ Sets\ 2018' 'Sagar-Dinesh-Jayalal')
 
 # Call by dropbox to nautilus has 3 arguments. (got this from strace)
 # If 3 arguments are not given, run nautilus directly. Else run our hack.
@@ -37,7 +37,7 @@ else
 		then	# match found
 			lstr=${str,,}		# convert to lower case which is what dropbox does !
 
-			# replace _1st_ occurance in path
+			# replace _1st_ occurrence in path
 			newpath=`echo $3 | sed "s/$LPREFIX$lstr/$UPREFIX$str/1"` 
 			xdg-open "$newpath"
 			exit 0
