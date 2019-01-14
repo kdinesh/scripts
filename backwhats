@@ -1,14 +1,14 @@
 #!/bin/bash
 set -e
 
-WPROOT="$HOME/Downloads/whatsapp"
+WPROOT="/backup/whatsapp"
 WPPATH="/sdcard/WhatsApp/Media/WhatsApp"
 
 # Check if device is online and fail otherwise
 adb devices
 
 # Download all that are new
-for tp in "Audio" "Video" "Images"
+for tp in "Audio" "Video" "Images" "Documents"
 do
 	if [ ! -d "$WPROOT/$tp" ]
 	then
@@ -24,8 +24,8 @@ do
 		then
 			echo "New file named $i"
 			adb pull "$WPPATH $tp/$i" "$WPROOT/$tp/"
+			flg=0
 		fi
-		flg=0
 	done
 	if [ $flg ]
 	then
@@ -34,4 +34,37 @@ do
 
 	echo
 done
+
+# Download all new statuses
+echo "Checking for new Statuses ..."
+WPSTATUS="/sdcard/WhatsApp/Media/.Statuses"
+
+if [ ! -d "$WPSTATUS" ]
+then
+	mkdir -p "$WPROOT/Status"
+fi
+
+SLOC=`date "+%y/%m/%d"`
+
+if [ ! -d "$WPSTATUS/$SLOC" ]
+then
+	mkdir -p "$WPROOT/Status/$SLOC"
+fi
+
+
+out=`adb shell "ls $WPSTATUS"`
+flg=1
+for i in $out
+do
+	if [ ! -e "$WPROOT/Status/$SLOC/$i" ]
+	then
+		echo "New Status named $i"
+		adb pull "$WPSTATUS/$i" "$WPROOT/Status/$SLOC"
+		flg=0
+	fi
+done
+if [ $flg ]
+then
+	echo "No new Status"
+fi
 
