@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/local/bin/python3
 
 # (c) Dec 2015, Krishnamoorthy Dinesh
 # License : GPLv3
@@ -40,7 +40,7 @@ else:
                 return
             elif rlen == 1:
                 url = DBLP_BIBTEX_URL + l[0] + ".bib"
-                data = requests.get(url).content
+                data = requests.get(url).content.decode("utf-8")
             else:
                 print ("Multiple entries detected")
                 for i in range(rlen):
@@ -60,7 +60,7 @@ else:
 
 
             # Do processing of first line to get desired bibkey 
-            header = re.search("\@(.*){", lines[0]).group(0)
+            header = re.search("\@(.*){", str(lines[0])).group(0)
             bibkey = re.sub("[a-z]", "", str(re.search(".*\/(.*)$", str(lines[0])).group(1)))
             print (header, bibkey)
             
