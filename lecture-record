@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# Output file name
+fname=$(date +%Y-%m-%d_%H-%M_%S).mp4
+
+# Gets the device name for the audio output (aka sounds heard via your computer speaker / headset) ...
+audio_output=$(pactl list short sources | awk -F" " '{print $2}' | grep output | grep analog)
+
+# Gets the device name corresponding to your mic ...
+mic_input=$(pactl list short sources | awk -F" " '{print $2}' | grep input | grep analog)
+
+# Gets current screen size ...
+dimension=$(xrandr | grep "\*" | awk -F" " '{print $1}')
+
+
+ffmpeg 	-f pulse -i $mic_input \
+	-f pulse -i $audio_output \
+	-filter_complex '[0:a:0] volume=4.0 [l]; [l][1:a:0]amix=inputs=2' \
+	-video_size $dimension -framerate 60 -f x11grab -i :0.0+0,0  output.mkv
+
+# Above command does the following (in that order)
+#  - get voice from the mic
+#  - get sound reaching the computer audio 
+#  - increase mic volume 4 times and merges with the computer audio
+#  - record full screen at 60fps
+
+ffmpeg -i output.mkv -c copy $fname	# Convert to mp4 format
+
+echo
+echo
+echo "Processing complete"
+echo "Final file is " $fname
